@@ -29,12 +29,14 @@ class ESPCN(Model):
         with tf.variable_scope('espcn'):
             if not self._using_dataset:
                 lr_batch = tf.pad(lr_batch, [[0, 0], [4, 4], [4, 4], [0, 0]], 'SYMMETRIC')
-            net = tf.layers.conv2d(lr_batch, 64, 5, activation=tf.nn.tanh, padding='valid', name='conv1',
-                                   kernel_initializer=tf.keras.initializers.he_normal())
-            net = tf.layers.conv2d(net, 32, 3, activation=tf.nn.tanh, padding='valid', name='conv2',
-                                   kernel_initializer=tf.keras.initializers.he_normal())
-            net = tf.layers.conv2d(net, self._scale_factor ** 2, 3, activation=tf.nn.sigmoid, padding='valid',
-                                   name='conv3', kernel_initializer=tf.keras.initializers.he_normal())
+            kernel_initializer = tf.compat.v1.keras.initializers.he_normal()
+
+            net = tf.keras.layers.Conv2D(64, 5, activation=tf.nn.tanh, padding='valid', name='conv1',
+                                         kernel_initializer=kernel_initializer)(lr_batch)
+            net = tf.keras.layers.Conv2D(32, 3, activation=tf.nn.tanh, padding='valid', name='conv2',
+                                         kernel_initializer=kernel_initializer)(net)
+            net = tf.keras.layers.Conv2D(self._scale_factor ** 2, 3, activation=tf.nn.sigmoid, padding='valid',
+                                         name='conv3', kernel_initializer=kernel_initializer)(net)
             predicted_batch = tf.depth_to_space(net, self._scale_factor, name='prediction')
 
         espcn_variables = tf.trainable_variables(scope='espcn')

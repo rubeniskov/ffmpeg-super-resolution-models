@@ -35,12 +35,13 @@ class VSRnet(Model):
                                                          self._scale_factor * lr_batch.shape[2]), align_corners=True)
             else:
                 net = tf.pad(lr_batch, [[0, 0], [8, 8], [8, 8], [0, 0]], 'SYMMETRIC')
-            net = tf.layers.conv2d(net, 64, 9, activation=tf.nn.relu, padding='valid', name='conv1',
-                                   kernel_initializer=tf.keras.initializers.he_normal())
-            net = tf.layers.conv2d(net, 32, 5, activation=tf.nn.relu, padding='valid', name='conv2',
-                                   kernel_initializer=tf.keras.initializers.he_normal())
-            net = tf.layers.conv2d(net, 1, 5, activation=tf.nn.relu, padding='valid',
-                                   name='conv3', kernel_initializer=tf.keras.initializers.he_normal())
+            kernel_initializer = tf.compat.v1.keras.initializers.he_normal()
+            net = tf.layers.Conv2D(64, 9, activation=tf.nn.relu, padding='valid', name='conv1',
+                                   kernel_initializer=kernel_initializer)(net)
+            net = tf.layers.Conv2D(32, 5, activation=tf.nn.relu, padding='valid', name='conv2',
+                                   kernel_initializer=kernel_initializer)(net)
+            net = tf.layers.Conv2D(1, 5, activation=tf.nn.relu, padding='valid',
+                                   name='conv3', kernel_initializer=kernel_initializer)(net)
             predicted_batch = tf.maximum(net, 0.0)
 
         vsrnet_variables = tf.trainable_variables(scope='vsrnet')

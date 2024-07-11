@@ -39,16 +39,17 @@ class VESPCN(Model):
                 lr_input = tf.concat([tf.stack([data_batch[0][:, :, :, 1], data_batch[0][:, :, :, 0]], axis=3),
                                       tf.stack([data_batch[0][:, :, :, 1], data_batch[0][:, :, :, 2]], axis=3)], axis=0)
                 with tf.variable_scope('coarse_flow'):
-                    net = tf.layers.conv2d(lr_input, 24, 5, strides=2, activation=tf.nn.relu, padding='same',
-                                           name='conv1', kernel_initializer=tf.keras.initializers.he_normal())
-                    net = tf.layers.conv2d(net, 24, 3, strides=1, activation=tf.nn.relu, padding='same',
-                                           name='conv2', kernel_initializer=tf.keras.initializers.he_normal())
-                    net = tf.layers.conv2d(net, 24, 3, strides=2, activation=tf.nn.relu, padding='same',
-                                           name='conv3', kernel_initializer=tf.keras.initializers.he_normal())
-                    net = tf.layers.conv2d(net, 24, 3, strides=1, activation=tf.nn.relu, padding='same',
-                                           name='conv4', kernel_initializer=tf.keras.initializers.he_normal())
-                    net = tf.layers.conv2d(net, 32, 3, strides=1, activation=tf.nn.tanh, padding='same',
-                                           name='conv5', kernel_initializer=tf.keras.initializers.he_normal())
+                    kernel_initializer = tf.compat.v1.keras.initializers.he_normal()
+                    net = tf.keras.layers.Conv2D(24, 5, strides=2, activation=tf.nn.relu, padding='same',
+                                           name='conv1', kernel_initializer=kernel_initializer)(lr_input)
+                    net = tf.keras.layers.Conv2D(24, 3, strides=1, activation=tf.nn.relu, padding='same',
+                                           name='conv2', kernel_initializer=kernel_initializer)(net)
+                    net = tf.keras.layers.Conv2D(24, 3, strides=2, activation=tf.nn.relu, padding='same',
+                                           name='conv3', kernel_initializer=kernel_initializer)(net)
+                    net = tf.keras.layers.Conv2D(24, 3, strides=1, activation=tf.nn.relu, padding='same',
+                                           name='conv4', kernel_initializer=kernel_initializer)(net)
+                    net = tf.keras.layers.Conv2D(32, 3, strides=1, activation=tf.nn.tanh, padding='same',
+                                           name='conv5', kernel_initializer=kernel_initializer)(net)
                     coarse_flow = 36.0 * tf.depth_to_space(net, 4)
 
                     if self._using_dataset:
@@ -61,16 +62,17 @@ class VESPCN(Model):
 
                 ff_input = tf.concat([lr_input, coarse_flow, warped_frames], axis=3)
                 with tf.variable_scope('fine_flow'):
-                    net = tf.layers.conv2d(ff_input, 24, 5, strides=2, activation=tf.nn.relu, padding='same',
-                                           name='conv1', kernel_initializer=tf.keras.initializers.he_normal())
-                    net = tf.layers.conv2d(net, 24, 3, strides=1, activation=tf.nn.relu, padding='same',
-                                           name='conv2', kernel_initializer=tf.keras.initializers.he_normal())
-                    net = tf.layers.conv2d(net, 24, 3, strides=1, activation=tf.nn.relu, padding='same',
-                                           name='conv3', kernel_initializer=tf.keras.initializers.he_normal())
-                    net = tf.layers.conv2d(net, 24, 3, strides=1, activation=tf.nn.relu, padding='same',
-                                           name='conv4', kernel_initializer=tf.keras.initializers.he_normal())
-                    net = tf.layers.conv2d(net, 8, 3, strides=1, activation=tf.nn.tanh, padding='same',
-                                           name='conv5', kernel_initializer=tf.keras.initializers.he_normal())
+                    kernel_initializer = tf.compat.v1.keras.initializers.he_normal()
+                    net = tf.keras.layers.Conv2D(24, 5, strides=2, activation=tf.nn.relu, padding='same',
+                                           name='conv1', kernel_initializer=kernel_initializer)(ff_input)
+                    net = tf.keras.layers.Conv2D(24, 3, strides=1, activation=tf.nn.relu, padding='same',
+                                           name='conv2', kernel_initializer=kernel_initializer)(net)
+                    net = tf.keras.layers.Conv2D(24, 3, strides=1, activation=tf.nn.relu, padding='same',
+                                           name='conv3', kernel_initializer=kernel_initializer)(net)
+                    net = tf.keras.layers.Conv2D(24, 3, strides=1, activation=tf.nn.relu, padding='same',
+                                           name='conv4', kernel_initializer=kernel_initializer)(net)
+                    net = tf.keras.layers.Conv2D(8, 3, strides=1, activation=tf.nn.tanh, padding='same',
+                                           name='conv5', kernel_initializer=kernel_initializer)(net)
                     fine_flow = 36.0 * tf.depth_to_space(net, 2)
                     flow = coarse_flow + fine_flow
 
@@ -103,16 +105,17 @@ class VESPCN(Model):
         with tf.variable_scope('vespcn'):
             if not self._using_dataset:
                 sr_input = tf.pad(sr_input, [[0, 0], [5, 5], [5, 5], [0, 0]], 'SYMMETRIC')
-            net = tf.layers.conv2d(sr_input, 24, 3, activation=tf.nn.relu, padding='valid', name='conv1',
-                                   kernel_initializer=tf.keras.initializers.he_normal())
-            net = tf.layers.conv2d(net, 24, 3, activation=tf.nn.relu, padding='valid', name='conv2',
-                                   kernel_initializer=tf.keras.initializers.he_normal())
-            net = tf.layers.conv2d(net, 24, 3, activation=tf.nn.relu, padding='valid', name='conv3',
-                                   kernel_initializer=tf.keras.initializers.he_normal())
-            net = tf.layers.conv2d(net, 24, 3, activation=tf.nn.relu, padding='valid', name='conv4',
-                                   kernel_initializer=tf.keras.initializers.he_normal())
-            net = tf.layers.conv2d(net, self._scale_factor ** 2, 3, activation=None, padding='valid',
-                                   name='conv5', kernel_initializer=tf.keras.initializers.he_normal())
+            kernel_initializer = tf.compat.v1.keras.initializers.he_normal()
+            net = tf.keras.layers.Conv2D(24, 3, activation=tf.nn.relu, padding='valid', name='conv1',
+                                   kernel_initializer=kernel_initializer)(sr_input)
+            net = tf.keras.layers.Conv2D(24, 3, activation=tf.nn.relu, padding='valid', name='conv2',
+                                   kernel_initializer=kernel_initializer)(net)
+            net = tf.keras.layers.Conv2D(24, 3, activation=tf.nn.relu, padding='valid', name='conv3',
+                                   kernel_initializer=kernel_initializer)(net)
+            net = tf.keras.layers.Conv2D(24, 3, activation=tf.nn.relu, padding='valid', name='conv4',
+                                   kernel_initializer=kernel_initializer)(net)
+            net = tf.keras.layers.Conv2D(self._scale_factor ** 2, 3, activation=None, padding='valid',
+                                   name='conv5', kernel_initializer=kernel_initializer)(net)
             predicted_batch = tf.depth_to_space(net, self._scale_factor, name='prediction')
 
         if self._using_dataset:
